@@ -88,8 +88,15 @@ export function UserList() {
     if (a.isOnline && !b.isOnline) return -1;
     if (!a.isOnline && b.isOnline) return 1;
 
-    const timeA = new Date(a.lastActive || a.createdAt || 0).getTime();
-    const timeB = new Date(b.lastActive || b.createdAt || 0).getTime();
+    const parseTime = (val) => {
+      if (!val) return 0;
+      const d = new Date(val);
+      const t = d.getTime();
+      return isNaN(t) ? 0 : t;
+    };
+
+    const timeA = parseTime(a.lastActive || a.createdAt);
+    const timeB = parseTime(b.lastActive || b.createdAt);
     return timeB - timeA;
   });
 
