@@ -147,8 +147,10 @@ export function ChatProvider({ children }) {
           if (status === "read") {
             return { ...msg, status: "read" };
           }
-          if (status === "delivered" && msg.status === "sent") {
-            return { ...msg, status: "delivered" };
+          if (status === "delivered") {
+            if (!msg.status || msg.status === "sent") {
+              return { ...msg, status: "delivered" };
+            }
           }
         }
         return msg;

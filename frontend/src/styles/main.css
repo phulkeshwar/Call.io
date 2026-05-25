@@ -139,7 +139,7 @@ a:hover { color: var(--text-primary); }
 }
 
 .btn-success {
-  background: linear-gradient(135deg, var(--success), #059669);
+  background: linear-gradient(135deg, var(--success), #39fe32);
   border: 1px solid rgba(16, 185, 129, 0.3);
   color: #fff;
   box-shadow: 0 4px 15px var(--success-glow);

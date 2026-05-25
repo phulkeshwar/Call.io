@@ -92,13 +92,14 @@ export function ChatPanel() {
                 <span 
                   className="message-status-tick" 
                   style={{ 
-                    color: msg.status === "read" ? "var(--success)" : "var(--text-muted)",
-                    fontWeight: "bold",
-                    fontSize: "0.8rem",
+                    color: msg.status === "read" ? "#39fe32" : "#000000",
+                    fontWeight: "900",
+                    fontSize: "0.95rem",
                     letterSpacing: "-1.5px",
                     display: "inline-block",
                     minWidth: "12px",
-                    textAlign: "right"
+                    textAlign: "right",
+                    marginLeft: "4px"
                   }}
                   title={msg.status === "read" ? "Read" : msg.status === "delivered" ? "Delivered" : "Sent"}
                 >
