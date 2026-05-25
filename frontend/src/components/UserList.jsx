@@ -37,17 +37,33 @@ export function UserList() {
     fetchUsers();
   }, [token, currentUser?._id]);
 
+  const [localLastActiveMap, setLocalLastActiveMap] = useState({});
+
+  useEffect(() => {
+    if (onlineUserIds && onlineUserIds.length > 0) {
+      setLocalLastActiveMap((prev) => {
+        const next = { ...prev };
+        const nowStr = new Date().toISOString();
+        onlineUserIds.forEach((uid) => {
+          next[uid] = nowStr;
+        });
+        return next;
+      });
+    }
+  }, [onlineUserIds]);
+
   const normalizedUsers = users.map((user) => {
     const isOnline = onlineUserIds.includes(user._id);
     const isBusy = busyUserIds.includes(user._id);
     const isAvailable = isOnline && !isBusy;
+    const activeTime = localLastActiveMap[user._id] || user.lastActive || user.createdAt;
     
     return {
       ...user,
       isOnline,
       isBusy,
       isAvailable,
-      lastActive: isOnline ? new Date().toISOString() : (user.lastActive || user.createdAt),
+      lastActive: activeTime,
     };
   });
 
