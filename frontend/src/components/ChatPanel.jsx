@@ -94,7 +94,7 @@ export function ChatPanel() {
                   style={{ 
                     color: msg.status === "read" ? "#39fe32" : "#000000",
                     fontWeight: "900",
-                    fontSize: "0.95rem",
+                    fontSize: "0.8rem",
                     letterSpacing: "-1.5px",
                     display: "inline-block",
                     minWidth: "12px",

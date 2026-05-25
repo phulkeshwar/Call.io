@@ -47,6 +47,7 @@ export function UserList() {
       isOnline,
       isBusy,
       isAvailable,
+      lastActive: isOnline ? new Date().toISOString() : (user.lastActive || user.createdAt),
     };
   });
 
