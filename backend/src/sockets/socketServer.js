@@ -17,6 +17,7 @@ import { isAllowedOrigin } from "../config/cors.js";
 import { verifyToken } from "../services/tokenService.js";
 import { getRedisPubSub, isRedisEnabled } from "../config/redis.js";
 import { User } from "../models/User.js";
+import { Message } from "../models/Message.js";
 import {
   deleteCallSession,
   findUserCallIds,
@@ -211,20 +212,30 @@ export function setupSocket(httpServer) {
       const trimmed = text.trim();
       if (!trimmed) return;
 
-      const message = {
-        id: uuidv4(),
-        from: {
-          _id: user._id.toString(),
-          name: user.name,
-          country: user.country,
-          userId: user.userId,
-        },
-        text: trimmed,
-        timestamp: Date.now(),
-      };
+      try {
+        const savedMessage = await Message.create({
+          from: user._id,
+          to,
+          text: trimmed,
+        });
 
-      await emitToUser(io, to, "chat:receive", message);
-      socket.emit("chat:receive", { ...message, isSelf: true });
+        const message = {
+          id: savedMessage._id.toString(),
+          from: {
+            _id: user._id.toString(),
+            name: user.name,
+            country: user.country,
+            userId: user.userId,
+          },
+          text: trimmed,
+          timestamp: savedMessage.createdAt.getTime(),
+        };
+
+        await emitToUser(io, to, "chat:receive", message);
+        socket.emit("chat:receive", { ...message, isSelf: true });
+      } catch (error) {
+        console.error("Failed to save and send message:", error);
+      }
     });
 
     socket.on("chat:typing", async ({ to, isTyping }) => {

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useSocket } from "./SocketContext";
+import { api } from "../api/client";
 
 const ChatContext = createContext(null);
 
@@ -21,7 +22,7 @@ export function ChatProvider({ children }) {
   // Keep ref in sync with state
   activeChatRef.current = activeChat;
 
-  const openChat = useCallback((peer) => {
+  const openChat = useCallback(async (peer) => {
     setActiveChat(peer);
     // Clear unread for this peer
     setUnreadMap((prev) => {
@@ -29,6 +30,16 @@ export function ChatProvider({ children }) {
       delete next[peer._id];
       return next;
     });
+
+    try {
+      const { data } = await api.get(`/messages/${peer._id}`);
+      setMessagesMap((prev) => ({
+        ...prev,
+        [peer._id]: data.messages || [],
+      }));
+    } catch (error) {
+      console.error("Failed to load chat history:", error);
+    }
   }, []);
 
   const closeChat = useCallback(() => {
