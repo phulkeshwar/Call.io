@@ -122,17 +122,18 @@ export function UserList() {
               />
             </div>
 
-              <div className="user-content-wrapper">
+            <div className="user-content-wrapper">
               <div className="user-header-row">
                 <h4 className="user-name" title={user?.name || ""}>
                   {(user?.name || "").length > 7 ? (user?.name || "").slice(0, 7) + ".." : (user?.name || "Unknown")}
                 </h4>
                 <span className="uid">#{user?.userId || ""}</span>
                 <span className="status-label" style={{ color: dotColor }}>
+                  {getStatusLabel(user)}
                 </span>
               </div>
 
-            <div className="user-actions">
+              <div className="user-actions">
                 <button
                   className="btn btn-sm"
                   onClick={() => handleChat(user)}
