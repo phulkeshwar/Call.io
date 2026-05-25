@@ -304,7 +304,10 @@ export function setupSocket(httpServer) {
       );
 
       await setUserOfflineSocket(userId, socket.id);
-      await User.findByIdAndUpdate(userId, { lastActive: new Date() }).catch(err => console.error(err));
+      await User.findByIdAndUpdate(userId, { 
+        lastActive: new Date(),
+        disconnectedAt: new Date() 
+      }).catch(err => console.error(err));
       emitPresence(io);
     });
   });

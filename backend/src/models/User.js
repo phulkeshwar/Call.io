@@ -48,6 +48,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    disconnectedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

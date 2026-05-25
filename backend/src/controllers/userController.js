@@ -2,7 +2,7 @@ import { User } from "../models/User.js";
 import { getOnlineUserIds } from "../sockets/socketState.js";
 
 export async function listUsers(req, res) {
-  const users = await User.find({ _id: { $ne: req.user._id } }).select("name email country userId createdAt lastActive");
+  const users = await User.find({ _id: { $ne: req.user._id } }).select("name email country userId createdAt lastActive disconnectedAt");
   const onlineIds = await getOnlineUserIds();
 
   const payload = users.map((user) => ({
@@ -13,6 +13,7 @@ export async function listUsers(req, res) {
     userId: user.userId,
     createdAt: user.createdAt,
     lastActive: user.lastActive || user.createdAt,
+    disconnectedAt: user.disconnectedAt || null,
     isOnline: onlineIds.includes(user._id.toString()),
   }));
 
@@ -25,7 +26,7 @@ export async function lookupByUserId(req, res) {
     return res.status(400).json({ message: "Invalid user ID format" });
   }
 
-  const user = await User.findOne({ userId }).select("name country userId lastActive");
+  const user = await User.findOne({ userId }).select("name country userId lastActive disconnectedAt");
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
@@ -38,6 +39,7 @@ export async function lookupByUserId(req, res) {
       country: user.country,
       userId: user.userId,
       lastActive: user.lastActive || user.createdAt,
+      disconnectedAt: user.disconnectedAt || null,
       isOnline: onlineIds.includes(user._id.toString()),
     },
   });

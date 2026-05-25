@@ -73,30 +73,40 @@ export function UserList() {
     const isBusy = busyUserIds.includes(user._id);
     const isAvailable = isOnline && !isBusy;
     const activeTime = localLastActiveMap[user._id] || user.lastActive || user.createdAt;
-    
+
+    const wasOnline = prevOnlineRef.current.includes(user._id);
+    const disconnectedAt = (!isOnline && wasOnline)
+      ? (localLastActiveMap[user._id] || user.disconnectedAt)
+      : user.disconnectedAt;
+
     return {
       ...user,
       isOnline,
       isBusy,
       isAvailable,
       lastActive: activeTime,
+      disconnectedAt: disconnectedAt || null,
     };
   });
 
-  // Sort: Online users first, offline users second. Within each group, sort by lastActive descending.
+  const toTime = (val) => {
+    if (!val) return 0;
+    const t = typeof val === "number" ? val : new Date(val).getTime();
+    return isNaN(t) ? 0 : t;
+  };
+
   const sortedUsers = [...normalizedUsers].sort((a, b) => {
     if (a.isOnline && !b.isOnline) return -1;
     if (!a.isOnline && b.isOnline) return 1;
 
-    const parseTime = (val) => {
-      if (!val) return 0;
-      const d = new Date(val);
-      const t = d.getTime();
-      return isNaN(t) ? 0 : t;
-    };
+    // For offline users: prefer disconnectedAt over lastActive
+    const timeA = toTime(
+      a.isOnline ? (a.lastActive ?? a.createdAt) : (a.disconnectedAt ?? a.lastActive ?? a.createdAt)
+    );
+    const timeB = toTime(
+      b.isOnline ? (b.lastActive ?? b.createdAt) : (b.disconnectedAt ?? b.lastActive ?? b.createdAt)
+    );
 
-    const timeA = parseTime(a.lastActive || a.createdAt);
-    const timeB = parseTime(b.lastActive || b.createdAt);
     return timeB - timeA;
   });
 
