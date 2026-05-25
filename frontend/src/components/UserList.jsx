@@ -116,7 +116,7 @@ export function UserList() {
                 className="status-dot" 
                 style={{ 
                   background: dotColor,
-                  boxShadow: user.isAvailable ? `0 0 8px var(--success-glow)` : user.isBusy ? `0 0 8px rgba(245, 158, 11, 0.3)` : 'none',
+                  boxShadow: user.isAvailable ? `0 0 6px var(--success-glow)` : user.isBusy ? `0 0 5px rgba(245, 158, 11, 0.3)` : 'none',
                   animation: user.isAvailable || user.isBusy ? 'pulse 2s infinite' : 'none'
                 }} 
               />
@@ -125,7 +125,7 @@ export function UserList() {
             <div className="user-content-wrapper">
               <div className="user-header-row">
                 <h4 className="user-name" title={user?.name || ""}>
-                  {(user?.name || "").length > 7 ? (user?.name || "").slice(0, 7) + ".." : (user?.name || "Unknown")}
+                  {(user?.name || "").length > 5 ? (user?.name || "").slice(0, 5) + ".." : (user?.name || "Unknown")}
                 </h4>
                 <span className="uid">#{user?.userId || ""}</span>
                 <span className="status-label" style={{ color: dotColor }}>
