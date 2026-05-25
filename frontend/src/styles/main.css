@@ -440,42 +440,53 @@ a:hover { color: var(--text-primary); }
   background: var(--text-muted);
 }
 
-.user-info {
+.user-content-wrapper {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
   min-width: 0;
 }
-.user-info h4 {
+
+.user-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.user-header-row .user-name {
   font-size: 0.88rem;
   font-weight: 600;
   color: var(--text-primary);
-  display: flex;
-  align-items: center;
-  gap: 6px;
   margin: 0;
 }
-.user-info h4 .flag { font-size: 0.9rem; }
-.user-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 2px;
-}
-.user-meta .uid {
+
+.user-header-row .uid {
   font-family: 'Courier New', monospace;
   font-size: 0.72rem;
   color: var(--accent);
   font-weight: 700;
   letter-spacing: 0.5px;
 }
-.user-meta .country-name {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+
+.user-header-row .status-label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .user-actions {
   display: flex;
-  gap: 6px;
+  gap: 0.5rem;
   flex-shrink: 0;
+}
+
+.user-actions .btn-sm {
+  flex: 1;
+  max-width: 50px;
+  justify-content: center;
+  padding: 0.35rem 0.6rem;
 }
 
 /* ─── Call Panel ──────────────────────────────────────────── */
