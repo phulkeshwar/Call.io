@@ -209,3 +209,28 @@ export async function findUserCallIds(userId) {
 
   return Array.from(inMemory.userCalls.get(userId) || []);
 }
+
+export async function clearAllPresence() {
+  if (isRedisEnabled()) {
+    const redis = getRedis();
+    try {
+      await Promise.all([
+        redis.del(k.onlineSet()),
+        redis.del(k.busySet())
+      ]);
+      const socketKeys = await redis.keys(`${PREFIX}:user:sockets:*`);
+      if (socketKeys.length > 0) {
+        await redis.del(socketKeys);
+      }
+      console.log("Successfully cleared stale Redis presence sets at startup");
+    } catch (err) {
+      console.error("Failed to clear Redis presence sets:", err);
+    }
+  } else {
+    inMemory.userSockets.clear();
+    inMemory.onlineUsers.clear();
+    inMemory.busyUsers.clear();
+    inMemory.callSessions.clear();
+    inMemory.userCalls.clear();
+  }
+}

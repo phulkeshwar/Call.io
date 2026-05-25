@@ -28,6 +28,7 @@ import {
   setCallSession,
   setUserOfflineSocket,
   setUserOnline,
+  clearAllPresence,
 } from "./socketState.js";
 
 // ─── Debounced presence broadcast ────────────────────────────────────────────
@@ -59,6 +60,9 @@ async function emitToUser(io, userId, event, payload) {
 // ─── Setup ───────────────────────────────────────────────────────────────────
 
 export function setupSocket(httpServer) {
+  // Clear any stale presence data (highly relevant when using Redis, which persists keys across server restarts)
+  clearAllPresence().catch((err) => console.error("Error clearing presence at startup:", err));
+
   const io = new Server(httpServer, {
     cors: {
       origin(origin, callback) {
