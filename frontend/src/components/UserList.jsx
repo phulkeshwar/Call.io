@@ -122,67 +122,66 @@ export function UserList() {
               />
             </div>
 
-            <div className="user-info">
-              <h4 title={user.name}>
-                {user.name.length > 7 ? user.name.slice(0, 7) + ".." : user.name}
-              </h4>
-              <div className="user-meta">
-                <span className="uid" style={{ marginRight: 6 }}>#{user.userId}</span>
-                <span className="country-name" style={{ fontSize: "0.7rem", color: dotColor }}>
-                  {getStatusLabel(user)}
+              <div className="user-content-wrapper">
+              <div className="user-header-row">
+                <h4 className="user-name" title={user?.name || ""}>
+                  {(user?.name || "").length > 7 ? (user?.name || "").slice(0, 7) + ".." : (user?.name || "Unknown")}
+                </h4>
+                <span className="uid">#{user?.userId || ""}</span>
+                <span className="status-label" style={{ color: dotColor }}>
                 </span>
               </div>
-            </div>
 
             <div className="user-actions">
-              <button
-                className="btn btn-sm"
-                onClick={() => handleChat(user)}
-                type="button"
-                title="Chat"
-                style={{ position: "relative" }}
-              >
-                💬
-                {unread > 0 && (
-                  <span style={{
-                    position: "absolute",
-                    top: -4,
-                    right: -4,
-                    background: "var(--danger)",
-                    color: "#fff",
-                    borderRadius: "50%",
-                    width: 16,
-                    height: 16,
-                    fontSize: "0.6rem",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                  }}>
-                    {unread}
-                  </span>
-                )}
-              </button>
-              <button
-                className="btn btn-sm"
-                disabled={!canCall}
-                onClick={() => startCall(user, "audio")}
-                type="button"
-                title="Audio call"
-                style={{ opacity: canCall ? 1 : 0.3 }}
-              >
-                🎤
-              </button>
-              <button
-                className="btn btn-sm"
-                disabled={!canCall}
-                onClick={() => startCall(user, "video")}
-                type="button"
-                title="Video call"
-                style={{ opacity: canCall ? 1 : 0.3 }}
-              >
-                📹
-              </button>
+                <button
+                  className="btn btn-sm"
+                  onClick={() => handleChat(user)}
+                  type="button"
+                  title="Chat"
+                  style={{ position: "relative" }}
+                >
+                  💬
+                  {unread > 0 && (
+                    <span style={{
+                      position: "absolute",
+                      top: -4,
+                      right: -4,
+                      background: "var(--danger)",
+                      color: "#fff",
+                      borderRadius: "50%",
+                      width: 16,
+                      height: 16,
+                      fontSize: "0.6rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontWeight: 700,
+                    }}>
+                      {unread}
+                    </span>
+                  )}
+                </button>
+                <button
+                  className="btn btn-sm"
+                  disabled={!canCall}
+                  onClick={() => startCall(user, "audio")}
+                  type="button"
+                  title="Audio call"
+                  style={{ opacity: canCall ? 1 : 0.3 }}
+                >
+                  🎤
+                </button>
+                <button
+                  className="btn btn-sm"
+                  disabled={!canCall}
+                  onClick={() => startCall(user, "video")}
+                  type="button"
+                  title="Video call"
+                  style={{ opacity: canCall ? 1 : 0.3 }}
+                >
+                  📹
+                </button>
+              </div>
             </div>
           </article>
         );
