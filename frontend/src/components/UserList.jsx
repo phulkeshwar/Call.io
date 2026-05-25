@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { api } from "../api/client";
 import { useSocket } from "../context/SocketContext";
 import { useCall } from "../context/CallContext";
@@ -38,18 +38,34 @@ export function UserList() {
   }, [token, currentUser?._id]);
 
   const [localLastActiveMap, setLocalLastActiveMap] = useState({});
+  const prevOnlineRef = useRef([]);
 
   useEffect(() => {
-    if (onlineUserIds && onlineUserIds.length > 0) {
-      setLocalLastActiveMap((prev) => {
-        const next = { ...prev };
+    const prev = prevOnlineRef.current;
+    const current = onlineUserIds || [];
+
+    // Find users who just connected or just disconnected
+    const justConnected = current.filter((uid) => !prev.includes(uid));
+    const justDisconnected = prev.filter((uid) => !current.includes(uid));
+
+    if (justConnected.length > 0 || justDisconnected.length > 0) {
+      setLocalLastActiveMap((oldMap) => {
+        const nextMap = { ...oldMap };
         const nowStr = new Date().toISOString();
-        onlineUserIds.forEach((uid) => {
-          next[uid] = nowStr;
+
+        // Mark their transition action time as 'now'
+        justConnected.forEach((uid) => {
+          nextMap[uid] = nowStr;
         });
-        return next;
+        justDisconnected.forEach((uid) => {
+          nextMap[uid] = nowStr;
+        });
+
+        return nextMap;
       });
     }
+
+    prevOnlineRef.current = current;
   }, [onlineUserIds]);
 
   const normalizedUsers = users.map((user) => {
