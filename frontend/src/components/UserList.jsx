@@ -50,7 +50,7 @@ export function UserList() {
     };
   });
 
-  // Sort: Available first, then Busy, then Offline
+  // Sort: Available first, then Busy, then Offline. Within each group, sort by lastActive descending.
   const sortedUsers = [...normalizedUsers].sort((a, b) => {
     if (a.isAvailable && !b.isAvailable) return -1;
     if (!a.isAvailable && b.isAvailable) return 1;
@@ -58,7 +58,9 @@ export function UserList() {
     if (a.isBusy && !b.isBusy) return -1;
     if (!a.isBusy && b.isBusy) return 1;
     
-    return 0;
+    const timeA = new Date(a.lastActive || a.createdAt || 0).getTime();
+    const timeB = new Date(b.lastActive || b.createdAt || 0).getTime();
+    return timeB - timeA;
   });
 
   function handleChat(user) {

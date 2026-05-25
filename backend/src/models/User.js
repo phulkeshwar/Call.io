@@ -44,6 +44,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       unique: true,
     },
+    lastActive: {
+      type: Date,
+      default: Date.now,
+    },
   },
   { timestamps: true }
 );

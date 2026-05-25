@@ -751,7 +751,10 @@ a:hover { color: var(--text-primary); }
   font-size: 0.65rem;
   opacity: 0.6;
   margin-top: 4px;
-  display: block;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
 }
 
 .typing-indicator {

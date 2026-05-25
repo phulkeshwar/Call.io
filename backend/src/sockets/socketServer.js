@@ -113,7 +113,22 @@ export function setupSocket(httpServer) {
 
     socket.join(`user:${userId}`);
     await setUserOnline(userId, socket.id);
+    await User.findByIdAndUpdate(userId, { lastActive: new Date() }).catch(err => console.error(err));
     emitPresence(io);
+
+    // Update pending 'sent' messages to 'delivered' and notify senders
+    try {
+      const senders = await Message.distinct("from", { to: userId, status: "sent" });
+      await Message.updateMany({ to: userId, status: "sent" }, { $set: { status: "delivered" } });
+      for (const senderId of senders) {
+        await emitToUser(io, senderId.toString(), "chat:read-receipt", {
+          readerId: userId,
+          status: "delivered",
+        });
+      }
+    } catch (err) {
+      console.error("Failed to deliver offline messages on connection:", err);
+    }
 
     const [onlineUserIds, busyUserIds] = await Promise.all([
       getOnlineUserIds(),
@@ -213,10 +228,14 @@ export function setupSocket(httpServer) {
       if (!trimmed) return;
 
       try {
+        const isOnline = await isUserOnline(to);
+        const status = isOnline ? "delivered" : "sent";
+
         const savedMessage = await Message.create({
           from: user._id,
           to,
           text: trimmed,
+          status,
         });
 
         const message = {
@@ -229,12 +248,31 @@ export function setupSocket(httpServer) {
           },
           text: trimmed,
           timestamp: savedMessage.createdAt.getTime(),
+          status,
         };
 
         await emitToUser(io, to, "chat:receive", message);
         socket.emit("chat:receive", { ...message, isSelf: true });
       } catch (error) {
         console.error("Failed to save and send message:", error);
+      }
+    });
+
+    socket.on("chat:read", async ({ peerId }) => {
+      if (!peerId) return;
+
+      try {
+        await Message.updateMany(
+          { from: peerId, to: userId, status: { $ne: "read" } },
+          { $set: { status: "read" } }
+        );
+
+        await emitToUser(io, peerId, "chat:read-receipt", {
+          readerId: userId,
+          status: "read",
+        });
+      } catch (error) {
+        console.error("Failed to process chat:read receipt:", error);
       }
     });
 
@@ -266,6 +304,7 @@ export function setupSocket(httpServer) {
       );
 
       await setUserOfflineSocket(userId, socket.id);
+      await User.findByIdAndUpdate(userId, { lastActive: new Date() }).catch(err => console.error(err));
       emitPresence(io);
     });
   });

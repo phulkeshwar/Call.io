@@ -26,11 +26,34 @@ export async function getChatHistory(req, res) {
       isSelf: msg.from._id.toString() === currentUserId.toString(),
       senderName: msg.from.name,
       senderUserId: msg.from.userId,
+      status: msg.status || "sent",
     }));
 
     return res.json({ messages: formattedMessages });
   } catch (error) {
     console.error("Failed to get chat history:", error);
     return res.status(500).json({ message: "Failed to retrieve chat history" });
+  }
+}
+
+export async function markAsRead(req, res) {
+  try {
+    const { peerId } = req.params;
+    const currentUserId = req.user._id;
+
+    if (!peerId) {
+      return res.status(400).json({ message: "Peer ID is required" });
+    }
+
+    // Update received messages from peer to current user
+    await Message.updateMany(
+      { from: peerId, to: currentUserId, status: { $ne: "read" } },
+      { $set: { status: "read" } }
+    );
+
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("Failed to mark messages as read:", error);
+    return res.status(500).json({ message: "Failed to mark messages as read" });
   }
 }

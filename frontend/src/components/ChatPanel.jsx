@@ -86,7 +86,26 @@ export function ChatPanel() {
             className={`chat-bubble ${msg.isSelf ? "sent" : "received"}`}
           >
             {msg.text}
-            <span className="bubble-time">{formatTime(msg.timestamp)}</span>
+            <span className="bubble-time">
+              {formatTime(msg.timestamp)}
+              {msg.isSelf && (
+                <span 
+                  className="message-status-tick" 
+                  style={{ 
+                    color: msg.status === "read" ? "var(--success)" : "var(--text-muted)",
+                    fontWeight: "bold",
+                    fontSize: "0.8rem",
+                    letterSpacing: "-1.5px",
+                    display: "inline-block",
+                    minWidth: "12px",
+                    textAlign: "right"
+                  }}
+                  title={msg.status === "read" ? "Read" : msg.status === "delivered" ? "Delivered" : "Sent"}
+                >
+                  {msg.status === "read" ? "✓✓" : msg.status === "delivered" ? "✓✓" : "✓"}
+                </span>
+              )}
+            </span>
           </div>
         ))}
         {isTyping && (

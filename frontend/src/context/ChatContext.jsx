@@ -37,10 +37,18 @@ export function ChatProvider({ children }) {
         ...prev,
         [peer._id]: data.messages || [],
       }));
+
+      // Mark received messages as read in DB
+      await api.put(`/messages/read/${peer._id}`);
+
+      // Emit read status in real-time so other user's ticks turn green
+      if (socket) {
+        socket.emit("chat:read", { peerId: peer._id });
+      }
     } catch (error) {
       console.error("Failed to load chat history:", error);
     }
-  }, []);
+  }, [socket]);
 
   const closeChat = useCallback(() => {
     setActiveChat(null);
@@ -81,6 +89,7 @@ export function ChatProvider({ children }) {
         isSelf: !!msg.isSelf,
         senderName: msg.from?.name,
         senderUserId: msg.from?.userId,
+        status: msg.status || "sent",
       };
 
       setMessagesMap((prev) => ({
@@ -94,9 +103,15 @@ export function ChatProvider({ children }) {
           ...prev,
           [peerId]: (prev[peerId] || 0) + 1,
         }));
+      } else if (!msg.isSelf && activeChatRef.current?._id === peerId) {
+        // If we are currently in this active chat, immediately mark it read in MongoDB and notify peer in real-time
+        api.put(`/messages/read/${peerId}`).catch((err) => console.error(err));
+        if (socket) {
+          socket.emit("chat:read", { peerId });
+        }
       }
     },
-    []
+    [socket]
   );
 
   // Listen for typing indicators
@@ -123,6 +138,28 @@ export function ChatProvider({ children }) {
     });
   }, []);
 
+  // Listen for read receipts
+  const handleReadReceipt = useCallback(({ readerId, status }) => {
+    setMessagesMap((prev) => {
+      const peerMsgs = prev[readerId] || [];
+      const updatedMsgs = peerMsgs.map((msg) => {
+        if (msg.isSelf) {
+          if (status === "read") {
+            return { ...msg, status: "read" };
+          }
+          if (status === "delivered" && msg.status === "sent") {
+            return { ...msg, status: "delivered" };
+          }
+        }
+        return msg;
+      });
+      return {
+        ...prev,
+        [readerId]: updatedMsgs,
+      };
+    });
+  }, []);
+
   useEffect(() => {
     if (!socket) {
       return undefined;
@@ -130,12 +167,14 @@ export function ChatProvider({ children }) {
 
     socket.on("chat:receive", handleReceive);
     socket.on("chat:typing", handleTyping);
+    socket.on("chat:read-receipt", handleReadReceipt);
 
     return () => {
       socket.off("chat:receive", handleReceive);
       socket.off("chat:typing", handleTyping);
+      socket.off("chat:read-receipt", handleReadReceipt);
     };
-  }, [socket, handleReceive, handleTyping]);
+  }, [socket, handleReceive, handleTyping, handleReadReceipt]);
 
   useEffect(() => {
     return () => {
