@@ -83,8 +83,11 @@ export function UserList() {
     };
   });
 
-  // Sort: most recently active user first (by lastActive descending)
+  // Sort: Online users first, offline users second. Within each group, sort by lastActive descending.
   const sortedUsers = [...normalizedUsers].sort((a, b) => {
+    if (a.isOnline && !b.isOnline) return -1;
+    if (!a.isOnline && b.isOnline) return 1;
+
     const timeA = new Date(a.lastActive || a.createdAt || 0).getTime();
     const timeB = new Date(b.lastActive || b.createdAt || 0).getTime();
     return timeB - timeA;
