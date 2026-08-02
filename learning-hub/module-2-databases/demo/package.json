@@ -1,0 +1,14 @@
+{
+  "name": "module-2-mongoose-demo",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "mongoose-demo.js",
+  "scripts": {
+    "start": "node mongoose-demo.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.6.2"
+  }
+}

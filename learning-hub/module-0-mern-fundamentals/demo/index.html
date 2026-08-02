@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 0: MERN Request Tracer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080c14;
+      --surface: #111827;
+      --card: #1a2235;
+      --border: #2a3550;
+      --primary: #818cf8;
+      --primary-dim: rgba(129, 140, 248, 0.12);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --danger: #f87171;
+      --info: #38bdf8;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    header { text-align: center; margin-bottom: 2rem; }
+
+    h1 {
+      font-size: 2.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.3rem;
+    }
+
+    .sub { color: var(--muted); font-size: 1rem; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 800px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+    }
+
+    .panel h2 {
+      font-size: 1.15rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-group { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .btn {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.6rem;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 12px var(--primary-dim);
+    }
+
+    .btn:active { transform: scale(0.99); }
+
+    .btn .method {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.15rem 0.4rem;
+      border-radius: 0.25rem;
+      margin-right: 0.4rem;
+    }
+
+    .method-get { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+    .method-post { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+
+    .btn .path {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .btn .desc {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Trace timeline */
+    .trace-area {
+      min-height: 400px;
+    }
+
+    .empty-state {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 300px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      text-align: center;
+      border: 1px dashed var(--border);
+      border-radius: 0.75rem;
+    }
+
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+
+    .step {
+      display: flex;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      position: relative;
+      animation: fadeSlide 0.35s ease-out both;
+    }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-line {
+      width: 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .step-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      background: var(--bg);
+      z-index: 1;
+      flex-shrink: 0;
+    }
+
+    .step-connector {
+      width: 2px;
+      flex: 1;
+      background: var(--border);
+    }
+
+    .step:last-child .step-connector { display: none; }
+
+    .step-content { flex: 1; min-width: 0; }
+
+    .step-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.2rem;
+      margin-right: 0.4rem;
+    }
+
+    .badge-middleware { background: rgba(129, 140, 248, 0.15); color: var(--primary); }
+    .badge-route { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+    .badge-controller { background: rgba(56, 189, 248, 0.15); color: var(--info); }
+    .badge-model { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+    .badge-database { background: rgba(251, 191, 36, 0.25); color: var(--warning); }
+    .badge-service { background: rgba(192, 132, 252, 0.15); color: #c084fc; }
+    .badge-validation { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+    .badge-response { background: rgba(52, 211, 153, 0.2); color: var(--success); border: 1px solid rgba(52, 211, 153, 0.3); }
+    .badge-error { background: rgba(248, 113, 113, 0.2); color: var(--danger); }
+
+    .step-message {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .step-detail {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .response-card {
+      margin-top: 1.5rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+
+    .response-card h3 {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.5rem;
+    }
+
+    .response-body {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--success);
+      background: rgba(0,0,0,0.3);
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 180px;
+      overflow-y: auto;
+    }
+
+    .response-body.error-body { color: var(--danger); }
+
+    .status-pill {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      margin-left: 0.5rem;
+    }
+
+    .status-200 { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+    .status-400 { background: rgba(251, 191, 36, 0.15); color: var(--warning); }
+    .status-401 { background: rgba(248, 113, 113, 0.15); color: var(--danger); }
+    .status-500 { background: rgba(248, 113, 113, 0.2); color: var(--danger); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>MERN Request Tracer</h1>
+      <p class="sub">Click a request to watch it travel through every middleware and layer</p>
+    </header>
+
+    <div class="layout">
+      <!-- Left: Request buttons -->
+      <div class="panel">
+        <h2>🚀 Fire a Request</h2>
+        <div class="btn-group">
+          <button class="btn" onclick="fireRequest('GET', '/api/health')">
+            <span class="method method-get">GET</span>
+            <span class="path">/api/health</span>
+            <span class="desc">Public endpoint — no auth required</span>
+          </button>
+
+          <button class="btn" onclick="fireRequest('POST', '/api/login', { email: 'pankaj@test.com', password: 'secret123' })">
+            <span class="method method-post">POST</span>
+            <span class="path">/api/login</span>
+            <span class="desc">Simulated login — returns a JWT token</span>
+          </button>
+
+          <button class="btn" onclick="fireRequest('POST', '/api/login', {})">
+            <span class="method method-post">POST</span>
+            <span class="path">/api/login</span>
+            <span class="desc">Login with missing fields — triggers validation error</span>
+          </button>
+
+          <button class="btn" onclick="fireRequest('GET', '/api/profile')">
+            <span class="method method-get">GET</span>
+            <span class="path">/api/profile</span>
+            <span class="desc">Protected route — NO token (will be blocked by middleware)</span>
+          </button>
+
+          <button class="btn" onclick="fireRequest('GET', '/api/profile', null, true)">
+            <span class="method method-get">GET</span>
+            <span class="path">/api/profile</span>
+            <span class="desc">Protected route — WITH token (will pass auth middleware)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Trace output -->
+      <div class="panel trace-area">
+        <h2>📡 Middleware Pipeline Trace</h2>
+        <div id="trace-output">
+          <div class="empty-state">
+            Click any request button on the left<br>to watch the server pipeline execute →
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const output = document.getElementById("trace-output");
+
+    async function fireRequest(method, path, body = null, withToken = false) {
+      output.innerHTML = `<div class="empty-state" style="height:auto;padding:2rem;">⏳ Sending ${method} ${path}...</div>`;
+
+      const opts = {
+        method,
+        headers: { "Content-Type": "application/json" },
+      };
+
+      if (withToken) {
+        opts.headers["Authorization"] = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiIxMjM0NSJ9.demo-token";
+      }
+
+      if (body) {
+        opts.body = JSON.stringify(body);
+      }
+
+      try {
+        const res = await fetch(path, opts);
+        const data = await res.json();
+        renderTrace(data.logs || [], data, res.status);
+      } catch (err) {
+        output.innerHTML = `<div class="empty-state" style="color:var(--danger);">❌ Network error: ${err.message}</div>`;
+      }
+    }
+
+    function badgeClass(layer) {
+      const map = {
+        "MIDDLEWARE": "badge-middleware",
+        "ROUTE": "badge-route",
+        "CONTROLLER": "badge-controller",
+        "MODEL": "badge-model",
+        "DATABASE": "badge-database",
+        "SERVICE": "badge-service",
+        "VALIDATION": "badge-validation",
+        "RESPONSE": "badge-response",
+        "ERROR HANDLER": "badge-error",
+      };
+      return map[layer] || "badge-middleware";
+    }
+
+    function statusClass(code) {
+      if (code < 300) return "status-200";
+      if (code < 500) return code === 401 ? "status-401" : "status-400";
+      return "status-500";
+    }
+
+    function renderTrace(logs, fullResponse, statusCode) {
+      let html = `<div class="timeline">`;
+
+      logs.forEach((log, i) => {
+        html += `
+          <div class="step" style="animation-delay:${i * 0.08}s">
+            <div class="step-line">
+              <div class="step-dot"></div>
+              <div class="step-connector"></div>
+            </div>
+            <div class="step-content">
+              <span class="step-badge ${badgeClass(log.layer)}">${log.layer}</span>
+              <span class="step-message">${log.message}</span>
+              ${log.detail ? `<div class="step-detail">${log.detail}</div>` : ""}
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+
+      // Response card
+      const respBody = { ...fullResponse };
+      delete respBody.logs;
+
+      html += `
+        <div class="response-card">
+          <h3>Server Response <span class="status-pill ${statusClass(statusCode)}">${statusCode}</span></h3>
+          <div class="response-body ${statusCode >= 400 ? 'error-body' : ''}">${JSON.stringify(respBody, null, 2)}</div>
+        </div>
+      `;
+
+      output.innerHTML = html;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 4: WebSockets & Socket.io Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 2rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 650px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a5b4fc, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .chat-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      display: flex;
+      flex-direction: column;
+      height: 480px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 1rem 1.5rem;
+      background-color: rgba(15, 23, 42, 0.4);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .username-badge {
+      background-color: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .messages-area {
+      flex: 1;
+      padding: 1.5rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      background-color: rgba(15, 23, 42, 0.2);
+    }
+
+    .message {
+      max-width: 75%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      position: relative;
+    }
+
+    .msg-self {
+      align-self: flex-end;
+      background-color: var(--primary);
+      color: white;
+      border-bottom-right-radius: 0.25rem;
+    }
+
+    .msg-other {
+      align-self: flex-start;
+      background-color: #334155;
+      color: var(--text-main);
+      border-bottom-left-radius: 0.25rem;
+    }
+
+    .msg-author {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .msg-time {
+      font-size: 0.65rem;
+      opacity: 0.7;
+      text-align: right;
+      margin-top: 0.25rem;
+    }
+
+    .msg-system {
+      align-self: center;
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      border-radius: 9999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .typing-status {
+      padding: 0.5rem 1.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-style: italic;
+      min-height: 28px;
+    }
+
+    .input-area {
+      padding: 1rem 1.5rem;
+      background-color: rgba(15, 23, 42, 0.4);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .chat-input {
+      flex: 1;
+      background-color: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      color: white;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .chat-input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-send {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.25rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn-send:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .debug-box {
+      margin-top: 1.5rem;
+      background-color: #0c101b;
+      border: 1px solid #1e293b;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: #61afef;
+    }
+    .debug-title {
+      font-weight: bold;
+      color: #e5c07b;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Module 4 Chat Arena</h1>
+      <p class="subtitle">Bi-directional WebSockets live communication</p>
+    </header>
+
+    <div class="chat-card">
+      <div class="chat-header">
+        <span>Chat Room</span>
+        <div id="username-display" class="username-badge">Connecting...</div>
+      </div>
+
+      <div class="messages-area" id="messages-area">
+        <div class="msg-system">Connecting to WebSocket server...</div>
+      </div>
+
+      <div class="typing-status" id="typing-status"></div>
+
+      <form class="input-area" id="chat-form">
+        <input 
+          type="text" 
+          id="message-input" 
+          class="chat-input" 
+          placeholder="Type a message..." 
+          autocomplete="off"
+          disabled
+        >
+        <button type="submit" id="send-button" class="btn-send" disabled>Send</button>
+      </form>
+    </div>
+
+    <div class="debug-box">
+      <div class="debug-title">🛠️ Socket.io Client Event Logger</div>
+      <div id="event-logs">No socket events captured yet.</div>
+    </div>
+  </div>
+
+  <!-- Load the socket.io client code served automatically by our server -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io(); // Connects to the host server
+
+    const displayUsername = document.getElementById("username-display");
+    const messagesArea = document.getElementById("messages-area");
+    const typingStatus = document.getElementById("typing-status");
+    const chatForm = document.getElementById("chat-form");
+    const msgInput = document.getElementById("message-input");
+    const sendButton = document.getElementById("send-button");
+    const eventLogs = document.getElementById("event-logs");
+
+    let myUsername = "";
+    let typingTimeout;
+
+    function logEvent(name, payload) {
+      const log = document.createElement("div");
+      log.innerHTML = `<span style="color: #c678dd;">[${new Date().toLocaleTimeString()}]</span> <span style="color: #98c379;">EMIT/RECEIVE "${name}":</span> ${JSON.stringify(payload)}`;
+      eventLogs.prepend(log);
+    }
+
+    // 1. Connection Event
+    socket.on("connect", () => {
+      messagesArea.innerHTML = "";
+      addSystemMessage("Connected to Socket Server!");
+      logEvent("connect", { id: socket.id });
+    });
+
+    // 2. Welcome Event
+    socket.on("welcome", (data) => {
+      myUsername = data.username;
+      displayUsername.innerHTML = `You: ${myUsername}`;
+      msgInput.disabled = false;
+      sendButton.disabled = false;
+      logEvent("welcome", data);
+    });
+
+    // 3. System notifications (Users joining/leaving)
+    socket.on("notification", (data) => {
+      addSystemMessage(data.message);
+      logEvent("notification", data);
+    });
+
+    // 4. Listen for incoming message
+    socket.on("chat:receive", (data) => {
+      addMessage(data.from, data.text, data.timestamp, false);
+      logEvent("chat:receive", data);
+    });
+
+    // 5. Listen for typing indicators
+    socket.on("chat:typing", (data) => {
+      logEvent("chat:typing", data);
+      if (data.isTyping) {
+        typingStatus.innerHTML = `${data.from} is typing...`;
+      } else {
+        typingStatus.innerHTML = "";
+      }
+    });
+
+    // Submit handler
+    chatForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = msgInput.value.trim();
+      if (!text) return;
+
+      // Emit the message to the socket server
+      socket.emit("chat:message", { text });
+      logEvent("chat:message", { text });
+
+      // Add to our own screen immediately
+      addMessage(myUsername, text, new Date().toLocaleTimeString(), true);
+
+      // Reset input
+      msgInput.value = "";
+      
+      // Stop typing immediately
+      socket.emit("chat:typing", { isTyping: false });
+    });
+
+    // Typing Event Triggers
+    msgInput.addEventListener("input", () => {
+      // Notify other tabs we are typing
+      socket.emit("chat:typing", { isTyping: true });
+
+      // Clear previous timer
+      clearTimeout(typingTimeout);
+
+      // If user stops typing for 1.5s, send stop typing notice
+      typingTimeout = setTimeout(() => {
+        socket.emit("chat:typing", { isTyping: false });
+      }, 1500);
+    });
+
+    function addSystemMessage(text) {
+      const div = document.createElement("div");
+      div.className = "msg-system";
+      div.textContent = text;
+      messagesArea.appendChild(div);
+      scrollToBottom();
+    }
+
+    function addMessage(author, text, time, isSelf) {
+      const div = document.createElement("div");
+      div.className = `message ${isSelf ? 'msg-self' : 'msg-other'}`;
+      
+      let html = "";
+      if (!isSelf) {
+        html += `<div class="msg-author">${author}</div>`;
+      }
+      html += `<div>${text}</div>`;
+      html += `<div class="msg-time">${time}</div>`;
+      
+      div.innerHTML = html;
+      messagesArea.appendChild(div);
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+  </script>
+</body>
+</html>

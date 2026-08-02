@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 1: CORS & HTTP Request Cycle Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --danger: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 2.5rem 1.5rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a5b4fc, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      border-color: #475569;
+    }
+
+    .card h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-danger {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .badge-success {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .card p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.8rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+    }
+
+    .btn-danger {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #dc2626;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background-color: #059669;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    }
+
+    .response-box {
+      margin-top: 1.5rem;
+      background-color: #0f172a;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 0.85rem;
+      min-height: 100px;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      white-space: pre-wrap;
+    }
+
+    .status-line {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .success-text {
+      color: var(--success);
+    }
+
+    .danger-text {
+      color: var(--danger);
+    }
+
+    .explanation-card {
+      margin-top: 1.5rem;
+      background: linear-gradient(135deg, #1e1b4b, #111827);
+      border: 1px solid #312e81;
+    }
+
+    .explanation-card h3 {
+      font-family: 'Outfit', sans-serif;
+      margin-bottom: 0.5rem;
+      color: #c7d2fe;
+    }
+
+    .code-block {
+      background-color: rgba(0, 0, 0, 0.3);
+      padding: 0.75rem;
+      border-radius: 0.25rem;
+      margin-top: 0.5rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #a5b4fc;
+      border-left: 3px solid var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Module 1 CORS Playground</h1>
+      <p class="subtitle">Understand browser origin protection visually. Hosted on: <strong>localhost:3000</strong></p>
+    </header>
+
+    <div class="grid">
+      <!-- Card 1: Request without CORS -->
+      <div class="card">
+        <h2>
+          API call WITHOUT CORS 
+          <span class="badge badge-danger">Will Block</span>
+        </h2>
+        <p>
+          Calls <code>GET http://localhost:5050/api/no-cors</code>. The backend server returns JSON, but doesn't send <code>Access-Control-Allow-Origin</code>. Your browser blocks the JavaScript client from accessing the response.
+        </p>
+        <button id="btn-no-cors" class="btn btn-danger">Execute Blocked Request</button>
+        
+        <div class="response-box" id="resp-no-cors">
+          <div class="status-line">
+            <span>Status: <strong id="status-no-cors">-</strong></span>
+          </div>
+          <div id="body-no-cors" style="color: var(--text-muted);">Click the button to send the request...</div>
+        </div>
+      </div>
+
+      <!-- Card 2: Request with CORS -->
+      <div class="card">
+        <h2>
+          API call WITH CORS 
+          <span class="badge badge-success">Will Pass</span>
+        </h2>
+        <p>
+          Calls <code>GET http://localhost:5050/api/with-cors</code>. The backend server returns JSON and sends <code>Access-Control-Allow-Origin: http://localhost:3000</code>. The browser validates it and lets the JS client read it.
+        </p>
+        <button id="btn-with-cors" class="btn btn-success">Execute Approved Request</button>
+        
+        <div class="response-box" id="resp-with-cors">
+          <div class="status-line">
+            <span>Status: <strong id="status-with-cors">-</strong></span>
+          </div>
+          <div id="body-with-cors" style="color: var(--text-muted);">Click the button to send the request...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Explanation Box -->
+    <div class="card explanation-card">
+      <h3>🔍 Under the Hood</h3>
+      <p>
+        Open your browser's Developer Tools (Press <strong>F12</strong> or <strong>Ctrl+Shift+I</strong>, and go to the <strong>Console</strong> tab). When you execute the "Without CORS" request, you will see a system error raised directly by your browser blocking the script:
+      </p>
+      <div class="code-block">
+        Access to fetch at 'http://localhost:5050/api/no-cors' from origin 'http://localhost:3000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const btnNoCors = document.getElementById("btn-no-cors");
+    const btnWithCors = document.getElementById("btn-with-cors");
+
+    const statusNoCors = document.getElementById("status-no-cors");
+    const bodyNoCors = document.getElementById("body-no-cors");
+
+    const statusWithCors = document.getElementById("status-with-cors");
+    const bodyWithCors = document.getElementById("body-with-cors");
+
+    btnNoCors.addEventListener("click", async () => {
+      bodyNoCors.innerHTML = "Sending HTTP GET Request...";
+      statusNoCors.innerHTML = "Pending";
+      statusNoCors.className = "";
+      bodyNoCors.style.color = "var(--text-muted)";
+
+      try {
+        const res = await fetch("http://localhost:5050/api/no-cors");
+        const json = await res.json();
+        statusNoCors.innerHTML = `${res.status} ${res.statusText}`;
+        statusNoCors.className = "success-text";
+        bodyNoCors.style.color = "var(--text-main)";
+        bodyNoCors.innerHTML = JSON.stringify(json, null, 2);
+      } catch (err) {
+        statusNoCors.innerHTML = "Blocked";
+        statusNoCors.className = "danger-text";
+        bodyNoCors.style.color = "var(--danger)";
+        bodyNoCors.innerHTML = `TypeError: Failed to fetch\n\n[CORS Policy Blocked]\n\nReason: The browser blocked your request because the server didn't supply the validation headers.`;
+        console.error("CORS Error caught in script:", err);
+      }
+    });
+
+    btnWithCors.addEventListener("click", async () => {
+      bodyWithCors.innerHTML = "Sending HTTP GET Request...";
+      statusWithCors.innerHTML = "Pending";
+      statusWithCors.className = "";
+      bodyWithCors.style.color = "var(--text-muted)";
+
+      try {
+        const res = await fetch("http://localhost:5050/api/with-cors");
+        const json = await res.json();
+        statusWithCors.innerHTML = `${res.status} OK`;
+        statusWithCors.className = "success-text";
+        bodyWithCors.style.color = "var(--success)";
+        bodyWithCors.innerHTML = JSON.stringify(json, null, 2);
+      } catch (err) {
+        statusWithCors.innerHTML = "Failed";
+        statusWithCors.className = "danger-text";
+        bodyWithCors.style.color = "var(--danger)";
+        bodyWithCors.innerHTML = `Error: ${err.message}`;
+      }
+    });
+  </script>
+</body>
+</html>

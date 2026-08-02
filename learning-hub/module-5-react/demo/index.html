@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 5: React State & Render Visualizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --card-bg: #151f32;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --danger: #ef4444;
+      --border: #24334a;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 2rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 850px;
+      width: 100%;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #818cf8, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    /* Styles injected here for the React elements */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .card h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background-color: #334155;
+    }
+
+    .btn-secondary:hover {
+      background-color: #475569;
+    }
+
+    .counter-badge {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--success);
+    }
+
+    .red-badge {
+      color: var(--danger);
+    }
+
+    .divider {
+      height: 1px;
+      background-color: var(--border);
+      margin: 1rem 0;
+    }
+
+    .highlight-box {
+      background-color: rgba(15, 23, 42, 0.4);
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      border-left: 3px solid var(--primary);
+      margin-top: 0.5rem;
+      color: #818cf8;
+    }
+
+    .explanation-card {
+      background: linear-gradient(135deg, #131a35, #0f172a);
+      border: 1px solid #1e293b;
+      margin-top: 1.5rem;
+    }
+
+    .explanation-card h3 {
+      font-family: 'Outfit', sans-serif;
+      color: #a5b4fc;
+      margin-bottom: 0.5rem;
+    }
+
+    .explanation-card p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 0.75rem;
+    }
+
+    .instruction-step {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      margin-bottom: 0.5rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+
+    .step-number {
+      background-color: var(--primary);
+      color: white;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: bold;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>React Hooks & Render Visualizer</h1>
+      <p class="subtitle">Understand state updates, silent refs, and memoization under the hood</p>
+    </header>
+
+    <!-- Mount node for React App -->
+    <div id="root"></div>
+
+    <div class="card explanation-card">
+      <h3>🎮 Visualizer Experiments to Try:</h3>
+      
+      <div class="instruction-step">
+        <div class="step-number">1</div>
+        <div>
+          Click <strong>"Increment State"</strong>. Both the parent and the Non-Optimized Child render counts will increase. Why? Because state changes trigger parent renders, which automatically trigger child renders.
+        </div>
+      </div>
+
+      <div class="instruction-step">
+        <div class="step-number">2</div>
+        <div>
+          Click <strong>"Increment Ref Silently"</strong>. The Ref value increases in the background (check console or card), but the UI count does NOT update and the render count stays at 0. Refs do not trigger updates!
+        </div>
+      </div>
+
+      <div class="instruction-step">
+        <div class="step-number">3</div>
+        <div>
+          Observe the <strong>Optimized Child</strong>. Why is its render count lower? Because it is wrapped in <code>React.memo()</code> and receives a memoized function using <code>useCallback</code>. React skips re-rendering it because its props didn't change!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load React & Babel CDNs -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+  <!-- React Code Written in Babel -->
+  <script type="text/babel">
+    const { useState, useRef, useCallback, useEffect } = React;
+
+    // ==========================================
+    // 1. NON-OPTIMIZED CHILD COMPONENT
+    // ==========================================
+    function NonOptimizedChild({ onClick, count }) {
+      const renderCountRef = useRef(0);
+      renderCountRef.current++;
+
+      return (
+        <div className="card" style={{ marginTop: "1rem", borderStyle: "dashed" }}>
+          <h2>
+            ⚠️ Non-Optimized Child
+            <span className="counter-badge red-badge">Renders: {renderCountRef.current}</span>
+          </h2>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+            This child receives a <strong>normal function</strong> prop. On every parent render, that function gets re-created, forcing this child to re-render.
+          </p>
+          <button className="btn btn-secondary" onClick={onClick}>Trigger Prop Callback</button>
+        </div>
+      );
+    }
+
+    // ==========================================
+    // 2. OPTIMIZED CHILD COMPONENT
+    // ==========================================
+    // Wrapped in React.memo to skip render if props are shallowly equal
+    const OptimizedChild = React.memo(function OptimizedChild({ onClick, count }) {
+      const renderCountRef = useRef(0);
+      renderCountRef.current++;
+
+      return (
+        <div className="card" style={{ marginTop: "1rem", borderColor: "var(--success)" }}>
+          <h2>
+            🛡️ Optimized Child (Memo)
+            <span className="counter-badge">Renders: {renderCountRef.current}</span>
+          </h2>
+          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+            This child is wrapped in <code>React.memo</code> and receives a <strong>useCallback</strong> prop. React checks props, sees no change, and bypasses rendering entirely!
+          </p>
+          <button className="btn btn-secondary" onClick={onClick}>Trigger Prop Callback</button>
+        </div>
+      );
+    });
+
+    // ==========================================
+    // 3. MAIN APP PARENT COMPONENT
+    // ==========================================
+    function App() {
+      const [parentState, setParentState] = useState(0);
+      const parentRendersRef = useRef(0);
+      parentRendersRef.current++;
+
+      // useRef keeps count in background without triggering renders
+      const refCounter = useRef(0);
+
+      // A. Normal Callback: Recreated on every single render
+      const normalCallback = () => {
+        console.log("Normal callback executed.");
+      };
+
+      // B. useCallback Callback: Reference stays exactly the same across renders
+      const memoizedCallback = useCallback(() => {
+        console.log("Memoized callback executed.");
+      }, []); // Empty dependency array means create once and cache forever
+
+      const incrementState = () => {
+        setParentState(p => p + 1);
+      };
+
+      const incrementRef = () => {
+        refCounter.current++;
+        console.log(`Ref count incremented in background to: ${refCounter.current} (No render triggered)`);
+        // We force-update a separate message element in raw HTML just to show it is updating
+        document.getElementById("raw-ref-text").innerText = `Ref Value: ${refCounter.current}`;
+      };
+
+      return (
+        <div>
+          <div className="grid">
+            {/* Parent Control Dashboard */}
+            <div className="card">
+              <h2>
+                🏠 Parent Component
+                <span className="counter-badge" style={{ color: "var(--primary)" }}>Renders: {parentRendersRef.current}</span>
+              </h2>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginBottom: "1rem" }}>
+                This is the controller state. Updating state forces a visual update.
+              </p>
+              
+              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+                <button className="btn" onClick={incrementState}>Increment State</button>
+                <button className="btn btn-secondary" onClick={incrementRef}>Increment Ref Silently</button>
+              </div>
+
+              <div className="highlight-box">
+                State Value: {parentState}
+              </div>
+              <div className="highlight-box" id="raw-ref-text">
+                Ref Value: 0
+              </div>
+            </div>
+
+            {/* Explanatory notes */}
+            <div className="card" style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <h2>Console Log Output</h2>
+              <p style={{ fontSize: "0.85rem" }}>
+                Open your browser's Developer Tools Console to inspect the logs showing when functions get evaluated. Note that a React application with heavy UI components can become laggy if child renders are not controlled.
+              </p>
+              <div className="divider"></div>
+              <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                🚀 <strong>Vibe Coding Tip:</strong> Overusing <code>useCallback</code> everywhere is an anti-pattern. Only use it when passing callbacks to children optimized with <code>React.memo</code>!
+              </div>
+            </div>
+          </div>
+
+          <div className="grid">
+            <NonOptimizedChild onClick={normalCallback} count={parentState} />
+            <OptimizedChild onClick={memoizedCallback} count={0} />
+          </div>
+        </div>
+      );
+    }
+
+    // Mount to root DOM node
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>

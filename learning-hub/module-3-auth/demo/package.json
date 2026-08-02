@@ -1,0 +1,16 @@
+{
+  "name": "module-3-jwt-demo",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js & node client.js",
+    "server": "node server.js",
+    "client": "node client.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
