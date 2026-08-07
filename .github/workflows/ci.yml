@@ -1,0 +1,36 @@
+name: Call.io Continuous Integration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Test & Verify Backend
+        run: |
+          cd backend
+          npm install
+          npm run test --if-present
+
+      - name: Build & Verify Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build

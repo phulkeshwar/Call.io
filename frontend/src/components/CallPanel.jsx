@@ -10,14 +10,16 @@ export function CallPanel() {
     callTimer,
     isMuted,
     isCameraOff,
+    isScreenSharing,
     toggleMute,
     toggleCamera,
+    toggleScreenShare,
     endCall,
   } = useCall();
 
   if (!activeCall && callState !== "calling") {
     return (
-      <section className="call-panel idle">
+      <section className="call-panel idle" aria-label="Call Status Idle">
         <div className="idle-content">
           <div className="idle-icon">📞</div>
           <h3>Ready to Connect</h3>
@@ -28,7 +30,7 @@ export function CallPanel() {
   }
 
   return (
-    <section className="call-panel">
+    <section className="call-panel" aria-label="Active Call Session">
       <div className="call-header">
         <h3>
           {activeCall?.peer?.name || "Connecting..."}
@@ -44,7 +46,7 @@ export function CallPanel() {
             </span>
           )}
         </h3>
-        <span className="call-timer">
+        <span className="call-timer" aria-live="polite">
           {callState === "in-call" ? callTimer : "Connecting..."}
         </span>
       </div>
@@ -54,12 +56,13 @@ export function CallPanel() {
         <VideoPane stream={localStream} label="You" muted mirrored />
       </div>
 
-      <div className="call-controls">
+      <div className="call-controls" role="toolbar" aria-label="Call controls">
         <button
           className={`btn btn-icon ${isMuted ? "btn-danger" : ""}`}
           onClick={toggleMute}
           type="button"
-          title={isMuted ? "Unmute" : "Mute"}
+          aria-label={isMuted ? "Unmute Microphone" : "Mute Microphone"}
+          title={isMuted ? "Unmute Microphone" : "Mute Microphone"}
         >
           {isMuted ? "🔇" : "🎤"}
         </button>
@@ -67,15 +70,26 @@ export function CallPanel() {
           className={`btn btn-icon ${isCameraOff ? "btn-danger" : ""}`}
           onClick={toggleCamera}
           type="button"
-          title={isCameraOff ? "Camera On" : "Camera Off"}
+          aria-label={isCameraOff ? "Turn Camera On" : "Turn Camera Off"}
+          title={isCameraOff ? "Turn Camera On" : "Turn Camera Off"}
         >
           {isCameraOff ? "📷" : "📹"}
+        </button>
+        <button
+          className={`btn btn-icon ${isScreenSharing ? "btn-primary" : ""}`}
+          onClick={toggleScreenShare}
+          type="button"
+          aria-label={isScreenSharing ? "Stop Screen Share" : "Share Screen"}
+          title={isScreenSharing ? "Stop Screen Share" : "Share Screen"}
+        >
+          {isScreenSharing ? "🖥️" : "📺"}
         </button>
         <button
           className="btn btn-icon btn-danger"
           onClick={endCall}
           type="button"
-          title="End call"
+          aria-label="End Call"
+          title="End Call"
         >
           📵
         </button>

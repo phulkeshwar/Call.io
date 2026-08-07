@@ -3,7 +3,28 @@ import { useSocket } from "./SocketContext";
 import { useAuth } from "./AuthContext";
 
 const ICE_SERVERS = {
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun.services.mozilla.com" },
+    {
+      urls: "turn:openrelay.metered.ca:80",
+      username: "openrelay",
+      credential: "openrelay",
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443",
+      username: "openrelay",
+      credential: "openrelay",
+    },
+    {
+      urls: "turn:openrelay.metered.ca:443?transport=tcp",
+      username: "openrelay",
+      credential: "openrelay",
+    },
+  ],
+  iceCandidatePoolSize: 10,
 };
 
 const CallContext = createContext(null);
@@ -475,6 +496,54 @@ export function CallProvider({ children }) {
     };
   }, []);
 
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const screenStreamRef = useRef(null);
+
+  async function toggleScreenShare() {
+    if (isScreenSharing) {
+      if (screenStreamRef.current) {
+        screenStreamRef.current.getTracks().forEach((t) => t.stop());
+        screenStreamRef.current = null;
+      }
+      setIsScreenSharing(false);
+
+      if (pcRef.current && localStreamRef.current) {
+        const videoTrack = localStreamRef.current.getVideoTracks()[0];
+        const sender = pcRef.current.getSenders().find((s) => s.track?.kind === "video");
+        if (sender && videoTrack) {
+          sender.replaceTrack(videoTrack);
+        }
+      }
+    } else {
+      try {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        const screenTrack = screenStream.getVideoTracks()[0];
+        screenStreamRef.current = screenStream;
+
+        if (pcRef.current) {
+          const sender = pcRef.current.getSenders().find((s) => s.track?.kind === "video");
+          if (sender) {
+            sender.replaceTrack(screenTrack);
+          } else {
+            pcRef.current.addTrack(screenTrack, localStreamRef.current || screenStream);
+          }
+        }
+
+        screenTrack.onended = () => {
+          if (screenStreamRef.current) {
+            screenStreamRef.current.getTracks().forEach((t) => t.stop());
+            screenStreamRef.current = null;
+          }
+          setIsScreenSharing(false);
+        };
+
+        setIsScreenSharing(true);
+      } catch (err) {
+        console.warn("Screen sharing cancelled or failed:", err);
+      }
+    }
+  }
+
   const value = {
     incomingCall,
     activeCall,
@@ -483,6 +552,7 @@ export function CallProvider({ children }) {
     remoteStream,
     isMuted,
     isCameraOff,
+    isScreenSharing,
     callTimer,
     startCall,
     acceptCall,
@@ -490,6 +560,7 @@ export function CallProvider({ children }) {
     endCall,
     toggleMute,
     toggleCamera,
+    toggleScreenShare,
   };
 
   return <CallContext.Provider value={value}>{children}</CallContext.Provider>;

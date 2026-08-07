@@ -132,8 +132,62 @@ export function UserList() {
     return "⚪ Offline";
   }
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all"); // "all" | "online" | "available"
+
+  const filteredUsers = sortedUsers.filter((u) => {
+    const matchesSearch =
+      (u.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (u.userId || "").includes(searchQuery) ||
+      (u.country || "").toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+    if (statusFilter === "online") return u.isOnline;
+    if (statusFilter === "available") return u.isAvailable;
+    return true;
+  });
+
   return (
-    <section className="user-list">
+    <section className="user-list" aria-label="People Online Directory">
+      {/* Search & Filter Bar */}
+      <div className="user-search-bar" style={{ padding: "0.5rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+        <input
+          type="text"
+          placeholder="🔍 Search name, ID, country..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          aria-label="Search users by name, user ID, or country"
+          style={{
+            width: "100%",
+            padding: "0.4rem 0.7rem",
+            fontSize: "0.8rem",
+            borderRadius: "var(--radius-sm)",
+            border: "1px solid var(--border-glass)",
+            background: "var(--bg-input)",
+            color: "var(--text-primary)",
+            outline: "none",
+          }}
+        />
+        <div style={{ display: "flex", gap: "0.3rem" }}>
+          {["all", "online", "available"].map((filter) => (
+            <button
+              key={filter}
+              type="button"
+              onClick={() => setStatusFilter(filter)}
+              className={`btn btn-sm ${statusFilter === filter ? "btn-primary" : ""}`}
+              style={{
+                fontSize: "0.7rem",
+                padding: "0.2rem 0.5rem",
+                textTransform: "capitalize",
+                flex: 1,
+              }}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {!isSocketConnected && (
         <p style={{ padding: "0.5rem", color: "var(--warning)", fontSize: "0.8rem", textAlign: "center" }}>
           ⚠ Reconnecting...
@@ -144,14 +198,17 @@ export function UserList() {
           <div className="loading-spinner" />
         </div>
       )}
-      {!loading && sortedUsers.length === 0 && (
+      {!loading && filteredUsers.length === 0 && (
         <div className="no-chat">
           <span style={{ fontSize: "2rem", opacity: 0.3 }}>👥</span>
-          <p style={{ fontSize: "0.85rem" }}>No other users yet</p>
+          <p style={{ fontSize: "0.85rem" }}>
+            {searchQuery ? "No matching users found" : "No other users yet"}
+          </p>
         </div>
       )}
 
-      {sortedUsers.map((user) => {
+      <div role="list" aria-label="Users list">
+        {filteredUsers.map((user) => {
         const flag = <CountryFlag countryName={user.country} />;
         const unread = getUnread(user._id);
         const dotColor = getStatusDotColor(user);
@@ -236,6 +293,7 @@ export function UserList() {
           </article>
         );
       })}
+      </div>
     </section>
   );
 }

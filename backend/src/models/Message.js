@@ -26,4 +26,8 @@ const messageSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Compound indexes for fast chat history fetching and read receipt queries
+messageSchema.index({ from: 1, to: 1, createdAt: 1 });
+messageSchema.index({ to: 1, status: 1 });
+
 export const Message = mongoose.model("Message", messageSchema);

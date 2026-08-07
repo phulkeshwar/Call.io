@@ -6,6 +6,8 @@ import messageRoutes from "./routes/messageRoutes.js";
 import { isAllowedOrigin } from "./config/cors.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
+import { apiLimiter, authLimiter } from "./middleware/rateLimiter.js";
+
 export const app = express();
 
 app.use(
@@ -21,11 +23,13 @@ app.use(
 );
 app.use(express.json());
 
+app.use("/api", apiLimiter);
+
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 
