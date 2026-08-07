@@ -14,23 +14,35 @@ export async function connectRedis() {
     return false;
   }
 
-  pubClient = createClient({ url });
-  subClient = pubClient.duplicate();
-  dataClient = pubClient.duplicate();
+  try {
+    pubClient = createClient({ url });
+    subClient = pubClient.duplicate();
+    dataClient = pubClient.duplicate();
 
-  pubClient.on("error", (err) => console.error("[Redis pub]", err));
-  subClient.on("error", (err) => console.error("[Redis sub]", err));
-  dataClient.on("error", (err) => console.error("[Redis data]", err));
+    pubClient.on("error", (err) => console.error("[Redis pub]", err?.message || err));
+    subClient.on("error", (err) => console.error("[Redis sub]", err?.message || err));
+    dataClient.on("error", (err) => console.error("[Redis data]", err?.message || err));
 
-  await Promise.all([
-    pubClient.connect(),
-    subClient.connect(),
-    dataClient.connect(),
-  ]);
+    await Promise.all([
+      pubClient.connect(),
+      subClient.connect(),
+      dataClient.connect(),
+    ]);
 
-  redisEnabled = true;
-  console.log("Redis connected");
-  return true;
+    redisEnabled = true;
+    console.log("Redis connected");
+    return true;
+  } catch (error) {
+    console.warn("Failed to connect to Redis. Falling back to in-memory realtime state:", error?.message || error);
+    try { await pubClient?.disconnect(); } catch {}
+    try { await subClient?.disconnect(); } catch {}
+    try { await dataClient?.disconnect(); } catch {}
+    pubClient = null;
+    subClient = null;
+    dataClient = null;
+    redisEnabled = false;
+    return false;
+  }
 }
 
 export function isRedisEnabled() {
