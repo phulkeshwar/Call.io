@@ -12,9 +12,22 @@ export function ChatPanel({ width }) {
   } = useChat();
 
   const [input, setInput] = useState("");
+  const [copiedMsgId, setCopiedMsgId] = useState(null);
   const textareaRef = useRef(null);
   const messagesEndRef = useRef(null);
   const typingTimerRef = useRef(null);
+
+  function handleCopyMessage(text, msgId) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedMsgId(msgId);
+      setTimeout(() => {
+        setCopiedMsgId(null);
+      }, 2000);
+    }).catch((err) => {
+      console.error("Failed to copy message:", err);
+    });
+  }
 
   const messages = activeChat ? getMessages(activeChat._id) : [];
   const isTyping = activeChat && typingUsers.has(activeChat._id);
@@ -155,6 +168,15 @@ export function ChatPanel({ width }) {
             key={msg.id}
             className={`chat-bubble ${msg.isSelf ? "sent" : "received"}`}
           >
+            <button
+              className={`copy-msg-btn ${copiedMsgId === msg.id ? "copied" : ""}`}
+              onClick={() => handleCopyMessage(msg.text, msg.id)}
+              type="button"
+              title="Copy message"
+              aria-label="Copy message text to clipboard"
+            >
+              {copiedMsgId === msg.id ? "✓ Copied" : "📋 Copy"}
+            </button>
             {renderMessageContent(msg.text)}
             <span className="bubble-time">
               {formatTime(msg.timestamp)}
