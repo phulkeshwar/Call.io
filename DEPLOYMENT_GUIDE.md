@@ -27,6 +27,7 @@ This guide will walk you through deploying the Call.io application. The frontend
    - `MONGO_URI` = `your_mongodb_connection_string`
    - `JWT_SECRET` = `your_secure_random_string`
    - `JWT_EXPIRES_IN` = `7d`
+   - `REDIS_URL` = `redis://default:Qj8UiUnQzLcMcLZOj4MCD9boIoZsm2ry@redis-19509.c323.us-east-1-2.ec2.cloud.redislabs.com:19509`
    - `CLIENT_URL` = `https://your-frontend-url-on-vercel.vercel.app` (You can add a dummy URL for now, then update it later once Vercel is set up).
    - `CLIENT_URLS` = `https://your-frontend-url-on-vercel.vercel.app`
 7. Click **Create Web Service**. 
