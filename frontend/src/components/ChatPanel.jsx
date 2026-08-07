@@ -13,6 +13,8 @@ export function ChatPanel({ width }) {
 
   const [input, setInput] = useState("");
   const textareaRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const typingTimerRef = useRef(null);
 
   const messages = activeChat ? getMessages(activeChat._id) : [];
   const isTyping = activeChat && typingUsers.has(activeChat._id);
