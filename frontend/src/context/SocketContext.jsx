@@ -23,7 +23,8 @@ export function SocketProvider({ children }) {
       return;
     }
 
-    const instance = io(import.meta.env.VITE_SOCKET_URL, {
+    const socketUrl = import.meta.env.VITE_SOCKET_URL || "https://call-io-backend.onrender.com";
+    const instance = io(socketUrl, {
       auth: { token },
     });
 
