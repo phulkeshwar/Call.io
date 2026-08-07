@@ -144,10 +144,8 @@ export function CallProvider({ children }) {
     const pc = new RTCPeerConnection(ICE_SERVERS);
 
     pc.ontrack = (event) => {
-      const [stream] = event.streams;
-      if (stream) {
-        setRemoteStream(stream);
-      }
+      const incomingStream = event.streams[0] || new MediaStream([event.track]);
+      setRemoteStream(new MediaStream(incomingStream.getTracks()));
     };
 
     pc.onicecandidate = (event) => {
