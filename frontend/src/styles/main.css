@@ -1051,3 +1051,78 @@ a:hover { color: var(--text-primary); }
     transform: translateY(0);
   }
 }
+
+/* ─── Draggable Resizers & Mobile Tabs ──────────────────────── */
+.resizer-handle {
+  width: 10px;
+  margin: 0 -5px;
+  cursor: col-resize;
+  background: transparent;
+  z-index: 20;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+  user-select: none;
+}
+.resizer-handle::after {
+  content: '';
+  width: 3px;
+  height: 32px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.2s ease;
+}
+.resizer-handle:hover,
+.resizer-handle:active {
+  background: rgba(6, 182, 212, 0.15);
+}
+.resizer-handle:hover::after,
+.resizer-handle:active::after {
+  background: var(--accent);
+  height: 52px;
+  width: 4px;
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+body.resizing-active {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+.mobile-tab-bar {
+  display: flex;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-glass);
+  padding: 0.4rem 0.6rem;
+  gap: 0.5rem;
+}
+.mobile-tab-btn {
+  flex: 1;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.mobile-tab-btn.active {
+  background: var(--bg-glass);
+  border-color: var(--border-glass);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 900px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+  .resizer-handle {
+    display: none !important;
+  }
+}
+

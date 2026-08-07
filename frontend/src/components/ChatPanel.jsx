@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "../context/ChatContext";
 
-export function ChatPanel() {
+export function ChatPanel({ width }) {
   const {
     activeChat,
     closeChat,
@@ -124,7 +124,10 @@ export function ChatPanel() {
   if (!activeChat) return null;
 
   return (
-    <aside className="chat-panel">
+    <aside
+      className="chat-panel"
+      style={width ? { width: `${width}px`, minWidth: `${width}px` } : undefined}
+    >
       <div className="chat-header">
         <div className="chat-header-info">
           <span className="flag">{activeChat.flag || "🌍"}</span>
