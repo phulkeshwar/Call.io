@@ -12,8 +12,7 @@ export function ChatPanel() {
   } = useChat();
 
   const [input, setInput] = useState("");
-  const messagesEndRef = useRef(null);
-  const typingTimerRef = useRef(null);
+  const textareaRef = useRef(null);
 
   const messages = activeChat ? getMessages(activeChat._id) : [];
   const isTyping = activeChat && typingUsers.has(activeChat._id);
@@ -22,9 +21,12 @@ export function ChatPanel() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length, isTyping]);
 
-  // Reset input when chat changes
+  // Reset input and textarea height when chat changes
   useEffect(() => {
     setInput("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
   }, [activeChat?._id]);
 
   function handleSend(e) {
@@ -32,11 +34,20 @@ export function ChatPanel() {
     if (!input.trim()) return;
     sendMessage(input);
     setInput("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
     sendTyping(false);
   }
 
   function handleInputChange(e) {
     setInput(e.target.value);
+    // Auto-adjust height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
+    }
+
     sendTyping(true);
     clearTimeout(typingTimerRef.current);
     typingTimerRef.current = setTimeout(() => {
@@ -48,12 +59,66 @@ export function ChatPanel() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    } else if (e.key === "Tab") {
+      e.preventDefault();
+      const start = e.target.selectionStart;
+      const end = e.target.selectionEnd;
+      const newValue = input.substring(0, start) + "  " + input.substring(end);
+      setInput(newValue);
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.selectionStart = textareaRef.current.selectionEnd = start + 2;
+        }
+      }, 0);
     }
   }
 
   function formatTime(ts) {
     const d = new Date(ts);
     return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function renderMessageContent(text) {
+    if (!text) return null;
+
+    // Check if message contains explicit code blocks ```code```
+    const codeBlockRegex = /```(?:[a-zA-Z]*\n)?([\s\S]*?)```/g;
+    if (codeBlockRegex.test(text)) {
+      const parts = [];
+      let lastIndex = 0;
+      text.replace(codeBlockRegex, (match, codeContent, offset) => {
+        if (offset > lastIndex) {
+          parts.push(<span key={lastIndex}>{text.slice(lastIndex, offset)}</span>);
+        }
+        parts.push(
+          <pre key={offset} className="chat-code-block">
+            <code>{codeContent.trim()}</code>
+          </pre>
+        );
+        lastIndex = offset + match.length;
+      });
+      if (lastIndex < text.length) {
+        parts.push(<span key={lastIndex}>{text.slice(lastIndex)}</span>);
+      }
+      return parts;
+    }
+
+    // Detect code/log structure (multiple lines containing code elements or log patterns)
+    const isCodeOrLog =
+      text.includes("\n") &&
+      (/#include|using namespace|void |int main|def |function |const |let |var |class |public:|private:|import |export |return |console\.log|\{|\}|=>|;\n/i.test(text) ||
+        /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(text) || // Log format
+        (text.match(/\n/g) || []).length >= 3); // 4+ lines of text
+
+    if (isCodeOrLog) {
+      return (
+        <pre className="chat-code-block">
+          <code>{text}</code>
+        </pre>
+      );
+    }
+
+    return <span>{text}</span>;
   }
 
   if (!activeChat) return null;
@@ -85,7 +150,7 @@ export function ChatPanel() {
             key={msg.id}
             className={`chat-bubble ${msg.isSelf ? "sent" : "received"}`}
           >
-            {msg.text}
+            {renderMessageContent(msg.text)}
             <span className="bubble-time">
               {formatTime(msg.timestamp)}
               {msg.isSelf && (
@@ -116,9 +181,10 @@ export function ChatPanel() {
       </div>
 
       <form className="chat-input-bar" onSubmit={handleSend}>
-        <input
-          type="text"
-          placeholder="Type a message..."
+        <textarea
+          ref={textareaRef}
+          rows={1}
+          placeholder="Type a message... (Shift + Enter for new line)"
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
